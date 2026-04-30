@@ -52,10 +52,15 @@ struct ContentView: View {
                         }
                         
                         Spacer()
-                        Text(item.amount, format: .currency(code: "USD"))
+                        Text(item.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                     }
+                    .padding(3)
+                    .foregroundStyle(.primary)
+                    .listRowBackground(getBackgroundColor(for: item.amount))
+
                 }
                 .onDelete(perform: removeItems)
+                
             }
             .toolbar {
                 Button("Add Expense", systemImage: "plus") {
@@ -71,6 +76,15 @@ struct ContentView: View {
     
     func removeItems(at offsets: IndexSet) {
         expenses.items.remove(atOffsets: offsets)
+    }
+    func getBackgroundColor(for amount: Double) -> Color? {
+        if amount <= 10 {
+            return Color.green.opacity(0.15)
+        } else if amount <= 100 {
+            return Color.blue.opacity(0.17)
+        } else {
+            return Color.red.opacity(0.25)
+        }
     }
 }
 
