@@ -36,30 +36,69 @@ class Expenses {
     }
 }
 
+
+
 struct ContentView: View {
     @State private var expenses = Expenses()
     @State private var showingAddExpense = false
     
+    var personalItems: [ExpenseItem] {
+        expenses.items.filter { $0.type == "Personal" }
+    }
+    var businessItems: [ExpenseItem] {
+        expenses.items.filter { $0.type == "Business" }
+    }
+    
     var body: some View {
         NavigationStack {
             List {
-                ForEach(expenses.items) { item in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(item.name)
-                                .font(.headline)
-                            Text(item.type)
+                Section("Personal Expenses") {
+                    ForEach(personalItems) { item in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(item.name)
+                                    .font(.headline)
+                                Text(item.type)
+                                    .padding(0.1)
+                                    .font(.caption2)
+                            }
+                            
+                            Spacer()
+                            Text(item.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                         }
+                        .padding(3)
+                        .foregroundStyle(.primary)
+                        .listRowBackground(getBackgroundColor(for: item.amount))
                         
-                        Spacer()
-                        Text(item.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                     }
-                    .padding(3)
-                    .foregroundStyle(.primary)
-                    .listRowBackground(getBackgroundColor(for: item.amount))
-
+                    .onDelete { offsets in
+                        removeItems(at: offsets, in: personalItems)
+                    }
                 }
-                .onDelete(perform: removeItems)
+                
+                Section("Business Expensses") {
+                    ForEach(businessItems) { item in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(item.name)
+                                    .font(.headline)
+                                Text(item.type)
+                                    .padding(0.1)
+                                    .font(.caption2)
+                            }
+                            
+                            Spacer()
+                            Text(item.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                        }
+                        .padding(3)
+                        .foregroundStyle(.primary)
+                        .listRowBackground(getBackgroundColor(for: item.amount))
+                        
+                    }
+                    .onDelete { offsets in
+                        removeItems(at: offsets, in: businessItems)
+                    }
+                }
                 
             }
             .toolbar {
@@ -74,8 +113,11 @@ struct ContentView: View {
         }
     }
     
-    func removeItems(at offsets: IndexSet) {
-        expenses.items.remove(atOffsets: offsets)
+    func removeItems(at offsets: IndexSet, in inputArray: [ExpenseItem]) {
+        for offset in offsets {
+            let itemToDelete = inputArray[offset]
+            expenses.items.removeAll(where: { $0.id == itemToDelete.id })
+        }
     }
     func getBackgroundColor(for amount: Double) -> Color? {
         if amount <= 10 {
