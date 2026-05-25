@@ -99,18 +99,19 @@ struct ContentView: View {
                         removeItems(at: offsets, in: businessItems)
                     }
                 }
-                
-            }
-            .toolbar {
-                Button("Add Expense", systemImage: "plus") {
-                    showingAddExpense = true
-                }
             }
             .navigationTitle("iExpense")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        AddView(expenses: expenses)
+                    } label: {
+                        Image(systemName: "creditcard.fill")
+                    }
+                }
+            }
         }
-        .sheet(isPresented: $showingAddExpense) {
-            AddView(expenses: expenses)
-        }
+        
     }
     
     func removeItems(at offsets: IndexSet, in inputArray: [ExpenseItem]) {
