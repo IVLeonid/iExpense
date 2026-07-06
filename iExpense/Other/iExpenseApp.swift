@@ -5,6 +5,7 @@
 //  Created by Леонід Іванов on 24.04.2026.
 //
 
+import SwiftData
 import SwiftUI
 
 @main
@@ -13,5 +14,6 @@ struct iExpenseApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: ExpenseData.self)
     }
 }
