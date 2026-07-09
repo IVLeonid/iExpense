@@ -13,57 +13,63 @@ struct ExpenseView: View {
     @Environment(\.modelContext) var modelContext
     
     var body: some View {
-        List(expenses) { expense in
-            
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(expense.name)
-                        .font(.headline)
+        List {
+            ForEach(expenses) { expense in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(expense.name)
+                            .font(.headline)
+                        
+                        Text(expense.type)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                     
-                    Text(expense.type)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    Spacer()
+                    
+                    Text("\(expense.amount)")
                 }
-                
-                Spacer()
-                
-                Text("\(expense.amount)")
             }
+            .onDelete(perform: deleteExpense)
         }
-        
-        //        .navigationTitle(expenses.name)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        //        .toolbar {
-        //            ToolbarItem(placement: .topBarLeading) {
-        //                Button("Cancel") {
-        //                    dismiss()
-        //                }
-        //            }
+    }
+    
+    func deleteExpense(at offsets: IndexSet) {
+        for offset in offsets {
+            let expense = expenses[offset]
+            modelContext.delete(expense)
+        }
+    }
+    
+    init(searchString: String, sortOrder: [SortDescriptor<ExpenseData>]) {
+        let predicate = #Predicate<ExpenseData> { expense in
+            searchString == "All" || expense.type == searchString
+        }
         
-        //            ToolbarItem(placement: .topBarTrailing) {
-        //                Button("Save") {
-        //                    let item = ExpenseItem(name: name, type: type, amount: amount)
-        //                    expenses.items.append(item)
-        //                    dismiss()
-        //                }
-        //            }
-        //        }
+        _expenses = Query(filter: predicate, sort: sortOrder)
     }
 }
 
 #Preview {
+    // Build a model container for preview
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container: ModelContainer
     do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: ExpenseData.self, configurations: config)
-        
+        container = try ModelContainer(for: ExpenseData.self, configurations: config)
+        // Seed sample data
         let sampleData = ExpenseData(name: "New Book", type: "Business", amount: 50)
         container.mainContext.insert(sampleData)
-        
-        return ExpenseView()
-            .modelContainer(container)
-        
     } catch {
+        // If container creation fails, return a fallback view
         return Text("Помилка створення Preview: \(error.localizedDescription)")
     }
+    
+    // Always return a single View from the macro closure
+    return ExpenseView(
+        searchString: "",
+        sortOrder: [SortDescriptor(\ExpenseData.name)]
+    )
+    .modelContainer(container)
 }
